@@ -1,0 +1,2 @@
+Implements cloudformation template to define ASG as per the instruction
+It has desired parameters (with some needed additional ones), ec2 unique tags based in instance-id and a tag shared among ASG resoruces and any other detils that was asked

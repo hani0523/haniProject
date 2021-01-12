@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+    Description: Setting instance type t2.micro.
+  NumberOfInstances:
+    Type: Number
+    Default: 2
+    Description: The number of instances in the autoscaling group
+  ClusterName:
+    Type: String
+    Default: haniASGCluster
+    Description: The name for the cluster
+  PortToOpen:
+    Type: Number
+    Default: 9000
+    Description: The port to open (default to 9000)
+  AMI:
+    Type: String
+    Default: ami-08f3d892de259504d
+    Description: The Linux AMI to use.
+  Key:
+    Type : AWS::EC2::KeyPair::KeyName,
+    Description: The key used to access the instance.
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+Resources:
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "Internet Group"
+      GroupDescription: "SSH and web traffic in, all traffic out."
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref PortToOpen
+          ToPort: !Ref PortToOpen
+          CidrIp:  20.188.245.156/32
+  MyInstanceWithTag:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref AMI
+      InstanceType:
+        Ref: InstanceTypeParameter
+      KeyName: !Ref Key
+      SubnetId: !Ref SubnetA
+      SecurityGroupIds:
+        - Ref: InstanceSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 250
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          AWS_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+          aws ec2 create-tags --resources $AWS_INSTANCE_ID --tags Key=MyRootTag,Value=$AWS_INSTANCE_ID
+  myLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - Ebs:
+              VolumeSize: 22
+              VolumeType: gp2
+              DeleteOnTermination: true
+              Encrypted: true
+            DeviceName: /dev/xvdcz
+        CreditSpecification:
+          CpuCredits: Unlimited
+        ImageId: ami-02354e95b39ca8dec
+        InstanceType: t2.micro
+        KeyName: my-key-pair-useast1
+        Monitoring:
+          Enabled: true
+        SecurityGroupIds:
+          - Ref: InstanceSecurityGroup
+  myASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: myASG
+      MinSize: "1"
+      MaxSize: "6"
+      DesiredCapacity: "2"
+      HealthCheckGracePeriod: 300
+      LaunchTemplate:
+        LaunchTemplateId: !Ref myLaunchTemplate
+        Version: !GetAtt myLaunchTemplate.LatestVersionNumber
+      VPCZoneIdentifier:
+        - !Ref myPublicSubnet1
+        - !Ref myPublicSubnet2
+      MetricsCollection:
+        - Granularity: "1Minute"
+          Metrics:
+            - "GroupMinSize"
+            - "GroupMaxSize"
+      Tags:
+        - Key: ClusterName
+          Value: !Ref ClusterName
+          PropagateAtLaunch: "true"

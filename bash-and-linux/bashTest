@@ -1,0 +1,38 @@
+#!/bin/bash
+
+printf "\nSetting alias ll='ls -al\n"
+alias ll='ls -al'
+
+#Fetching stock price. NOTE: The URL given in the question needed a modificaiton to get the result
+funcCurl() {
+    price=`curl --silent https://api.iextrading.com/1.0/tops/last?symbols=AAPL | cut -d ',' -f 2 | cut -d ':' -f2`
+    printf "\nCurrent stock price for AAPL is USD $price\n"
+}
+
+#source an additional bash script, `~/.bashrc_extras`, if that file exists
+if [[ -f "~/.bashrc_extras" ]]; then
+    printf "\n~/.bashrc_extras exists.\n"
+    source ~/.bashrc_extras
+else
+    printf "\n~/.bashrc_extras doesn't exist, not sourcing it\n"
+fi
+
+#Assumption: There is a file called data that contains the data in the format given in the question.
+
+#Find Unique hosts in env1. 
+printf "\nFind Unique hosts in env1 are:\n"
+awk '$0 ~ /env1/{print}' data | awk '!seen[$2]++ {print $2}'
+
+#Find Number of instances with us-consumer defined
+printf "\nNumber of instances with us-consumer defined are: \n"
+grep 'us-consumer' data | wc -l
+
+#Find All disabled instances in a `host:port app` format, i.e. `reno-env01-apphost03.rno.apple.com:1000 ASPEN-us-consumer`
+printf "\nFind All disabled instances in a `host:port app` format, i.e. 'reno-env01-apphost03.rno.apple.com:1000 ASPEN-us-consumer'\n"
+awk '$5 == "yes" { print $2":"$3 " " $4}' data
+
+#command to scp a file `test.txt` to the /tmp folder of each host with port 8593 is: \n
+printf "\nCommand to scp a file `test.txt` to the /tmp folder of each host with port 8593 is: \n"
+printf "grep 8593 data | awk '{ print $2}' | xargs -I{} echo scp test.txt username@{}:/tmp\n"
+printf "\nAnd the output is: \n"
+grep 8593 data | awk '{print $2}' | xargs -I{} echo scp test.txt username@{}:/tmp

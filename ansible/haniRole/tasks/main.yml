@@ -1,0 +1,23 @@
+---
+# tasks file for haniRole
+- name: get os details
+  shell: uname -a
+  register: os_details_uname
+
+- name: "Ansible Create directory if not exists"
+  file:
+    path: "~/Desktop/"
+    state: directory
+    mode: 0755
+    group: ec2-user
+    owner: ec2-user
+
+- name: render my template
+  copy:
+    dest: ~/Desktop/my-template.txt
+    mode: 0775
+    force: yes
+    content: |
+       My custom variable is {{ roleVar }}
+       My operating system in {{ os_details_uname.stdout_lines }}
+ 

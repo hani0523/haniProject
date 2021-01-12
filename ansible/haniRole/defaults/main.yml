@@ -1,0 +1,4 @@
+---
+# defaults file for haniRole
+  roleVar:
+    value: test1234

@@ -1,0 +1,37 @@
+This project contins 3 direcotries
+ansible: to implement the ansible problem
+aws: to implement the cloudformation template
+bash-and-linux: to implement the bash problems
+
+Individual README will be inside the directories
+
+Tree structure
+└── haniProject
+    ├── ansible
+    │   ├── haniRole
+    │   │   ├── defaults
+    │   │   │   └── main.yml
+    │   │   ├── files
+    │   │   ├── handlers
+    │   │   │   └── main.yml
+    │   │   ├── meta
+    │   │   │   └── main.yml
+    │   │   ├── README.md
+    │   │   ├── tasks
+    │   │   │   └── main.yml
+    │   │   ├── templates
+    │   │   │   └── my-template.j2
+    │   │   ├── tests
+    │   │   │   ├── inventory
+    │   │   │   └── test.yml
+    │   │   └── vars
+    │   │       └── main.yml
+    │   └── my-playbook.yml
+    ├── aws
+    │   └── haniASG.yaml
+    ├── bash-and-linux
+    │   ├── bashTest
+    │   └── data
+    └── README
+
+NOTE: I have written and tested all these in EC2 instance with Centos AMI

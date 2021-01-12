@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    roleVar: test1234
+  tasks:
+    - name: Include the bar role
+      include_role:
+        name: haniRole
+
